@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { Wallet } from 'lucide-react';
 
 interface AuthLayoutProps {
   title: string;
@@ -13,11 +12,15 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
     <div className="min-h-screen flex justify-center bg-slate-100">
       <div className="relative w-full max-w-[480px] bg-slate-50 shadow-app min-h-screen flex flex-col">
         <div className="flex-1 px-6 pt-12 pb-8 flex flex-col">
-          <div className="flex items-center gap-2 mb-10">
-            <div className="h-10 w-10 rounded-2xl bg-balance text-white flex items-center justify-center">
-              <Wallet size={20} />
-            </div>
-            <span className="text-lg font-semibold text-slate-900">FinTrack</span>
+          <div className="flex flex-col items-center gap-2 mb-10">
+            <img
+              src="/icon-192.png"
+              alt="FinTrack"
+              width={80}
+              height={80}
+              className="h-20 w-20"
+            />
+            <span className="text-xl font-semibold text-slate-900">FinTrack</span>
           </div>
 
           <div className="mb-6">
