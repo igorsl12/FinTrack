@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.netlify.fintrack_igorlima.twa",
+        "sha256_cert_fingerprints": ["54:E6:25:68:BF:D5:97:D1:87:B1:6C:2B:A8:43:4F:DE:6D:24:4B:CD:4E:92:4D:EE:A6:57:05:60:44:7A:F0:8D"]
+      }
+    }]
