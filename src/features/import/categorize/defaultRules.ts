@@ -1,0 +1,155 @@
+import type {
+  Category,
+  TransactionType,
+} from '@/features/transactions/types';
+
+export interface StaticRule {
+  pattern: string;
+  category: Category;
+  type: TransactionType;
+}
+
+/**
+ * Default keyword → category mapping for Brazilian bank statements.
+ *
+ * Patterns are uppercase, accents removed. Matching is substring-based,
+ * so a single token like "UBER" matches "UBER *EATS", "UBER TRIP", etc.
+ * Longer, more specific patterns are tried first.
+ */
+export const DEFAULT_RULES: StaticRule[] = [
+  // ── Receitas ──────────────────────────────────────────────────────────
+  { pattern: 'SALARIO', category: 'Salário', type: 'income' },
+  { pattern: 'FOLHA PAGAMENTO', category: 'Salário', type: 'income' },
+  { pattern: 'RENDIMENTO POUPANCA', category: 'Investimentos', type: 'income' },
+  { pattern: 'RENDIMENTO', category: 'Investimentos', type: 'income' },
+  { pattern: 'DIVIDENDO', category: 'Investimentos', type: 'income' },
+  { pattern: 'JCP', category: 'Investimentos', type: 'income' },
+  { pattern: 'RESGATE CDB', category: 'Investimentos', type: 'income' },
+  { pattern: 'FREELANCE', category: 'Freelance', type: 'income' },
+  { pattern: 'AUTONOMO', category: 'Freelance', type: 'income' },
+
+  // ── Alimentação ───────────────────────────────────────────────────────
+  { pattern: 'IFOOD', category: 'Alimentação', type: 'expense' },
+  { pattern: 'RAPPI', category: 'Alimentação', type: 'expense' },
+  { pattern: 'JAMES DELIVERY', category: 'Alimentação', type: 'expense' },
+  { pattern: 'DELIVERY MUCH', category: 'Alimentação', type: 'expense' },
+  { pattern: 'RESTAURANTE', category: 'Alimentação', type: 'expense' },
+  { pattern: 'LANCHONETE', category: 'Alimentação', type: 'expense' },
+  { pattern: 'PIZZARIA', category: 'Alimentação', type: 'expense' },
+  { pattern: 'PADARIA', category: 'Alimentação', type: 'expense' },
+  { pattern: 'PANIFICADORA', category: 'Alimentação', type: 'expense' },
+  { pattern: 'HAMBURG', category: 'Alimentação', type: 'expense' },
+  { pattern: 'MCDONALDS', category: 'Alimentação', type: 'expense' },
+  { pattern: 'BURGER KING', category: 'Alimentação', type: 'expense' },
+  { pattern: 'BK ', category: 'Alimentação', type: 'expense' },
+  { pattern: 'SUBWAY', category: 'Alimentação', type: 'expense' },
+  { pattern: 'STARBUCKS', category: 'Alimentação', type: 'expense' },
+  { pattern: 'CAFETERIA', category: 'Alimentação', type: 'expense' },
+  { pattern: 'CAFE ', category: 'Alimentação', type: 'expense' },
+  { pattern: 'SUPERMERCADO', category: 'Alimentação', type: 'expense' },
+  { pattern: 'MERCADO', category: 'Alimentação', type: 'expense' },
+  { pattern: 'ATACADAO', category: 'Alimentação', type: 'expense' },
+  { pattern: 'CARREFOUR', category: 'Alimentação', type: 'expense' },
+  { pattern: 'ASSAI', category: 'Alimentação', type: 'expense' },
+  { pattern: 'PAO DE ACUCAR', category: 'Alimentação', type: 'expense' },
+  { pattern: 'EXTRA', category: 'Alimentação', type: 'expense' },
+  { pattern: 'HORTIFRUTI', category: 'Alimentação', type: 'expense' },
+  { pattern: 'ACOUGUE', category: 'Alimentação', type: 'expense' },
+
+  // ── Transporte ────────────────────────────────────────────────────────
+  { pattern: 'UBER', category: 'Transporte', type: 'expense' },
+  { pattern: '99 APP', category: 'Transporte', type: 'expense' },
+  { pattern: '99POP', category: 'Transporte', type: 'expense' },
+  { pattern: 'CABIFY', category: 'Transporte', type: 'expense' },
+  { pattern: 'BLABLACAR', category: 'Transporte', type: 'expense' },
+  { pattern: 'POSTO ', category: 'Transporte', type: 'expense' },
+  { pattern: 'COMBUSTIVEL', category: 'Transporte', type: 'expense' },
+  { pattern: 'GASOLINA', category: 'Transporte', type: 'expense' },
+  { pattern: 'ETANOL', category: 'Transporte', type: 'expense' },
+  { pattern: 'ESTACIONAMENTO', category: 'Transporte', type: 'expense' },
+  { pattern: 'PEDAGIO', category: 'Transporte', type: 'expense' },
+  { pattern: 'ECOVIAS', category: 'Transporte', type: 'expense' },
+  { pattern: 'SEM PARAR', category: 'Transporte', type: 'expense' },
+  { pattern: 'CONECTCAR', category: 'Transporte', type: 'expense' },
+  { pattern: 'METRO', category: 'Transporte', type: 'expense' },
+  { pattern: 'CPTM', category: 'Transporte', type: 'expense' },
+  { pattern: 'BILHETE UNICO', category: 'Transporte', type: 'expense' },
+  { pattern: 'LATAM', category: 'Transporte', type: 'expense' },
+  { pattern: 'GOL LINHAS', category: 'Transporte', type: 'expense' },
+  { pattern: 'AZUL LINHAS', category: 'Transporte', type: 'expense' },
+
+  // ── Moradia ───────────────────────────────────────────────────────────
+  { pattern: 'ALUGUEL', category: 'Moradia', type: 'expense' },
+  { pattern: 'CONDOMINIO', category: 'Moradia', type: 'expense' },
+  { pattern: 'ENEL', category: 'Moradia', type: 'expense' },
+  { pattern: 'ENERGIA ELETRICA', category: 'Moradia', type: 'expense' },
+  { pattern: 'CEMIG', category: 'Moradia', type: 'expense' },
+  { pattern: 'LIGHT ', category: 'Moradia', type: 'expense' },
+  { pattern: 'COPEL', category: 'Moradia', type: 'expense' },
+  { pattern: 'CPFL', category: 'Moradia', type: 'expense' },
+  { pattern: 'COMGAS', category: 'Moradia', type: 'expense' },
+  { pattern: 'SABESP', category: 'Moradia', type: 'expense' },
+  { pattern: 'COPASA', category: 'Moradia', type: 'expense' },
+  { pattern: 'SANEPAR', category: 'Moradia', type: 'expense' },
+  { pattern: 'CLARO ', category: 'Moradia', type: 'expense' },
+  { pattern: 'VIVO ', category: 'Moradia', type: 'expense' },
+  { pattern: 'TIM ', category: 'Moradia', type: 'expense' },
+  { pattern: 'OI FIBRA', category: 'Moradia', type: 'expense' },
+  { pattern: 'NET ', category: 'Moradia', type: 'expense' },
+  { pattern: 'IPTU', category: 'Moradia', type: 'expense' },
+
+  // ── Saúde ─────────────────────────────────────────────────────────────
+  { pattern: 'FARMACIA', category: 'Saúde', type: 'expense' },
+  { pattern: 'DROGARIA', category: 'Saúde', type: 'expense' },
+  { pattern: 'DROGASIL', category: 'Saúde', type: 'expense' },
+  { pattern: 'PACHECO', category: 'Saúde', type: 'expense' },
+  { pattern: 'RAIA', category: 'Saúde', type: 'expense' },
+  { pattern: 'PAGUE MENOS', category: 'Saúde', type: 'expense' },
+  { pattern: 'HOSPITAL', category: 'Saúde', type: 'expense' },
+  { pattern: 'CLINICA', category: 'Saúde', type: 'expense' },
+  { pattern: 'LABORATORIO', category: 'Saúde', type: 'expense' },
+  { pattern: 'UNIMED', category: 'Saúde', type: 'expense' },
+  { pattern: 'AMIL', category: 'Saúde', type: 'expense' },
+  { pattern: 'HAPVIDA', category: 'Saúde', type: 'expense' },
+  { pattern: 'BRADESCO SAUDE', category: 'Saúde', type: 'expense' },
+  { pattern: 'ODONTO', category: 'Saúde', type: 'expense' },
+  { pattern: 'DENTISTA', category: 'Saúde', type: 'expense' },
+  { pattern: 'PSICOLOG', category: 'Saúde', type: 'expense' },
+  { pattern: 'ACADEMIA', category: 'Saúde', type: 'expense' },
+  { pattern: 'SMARTFIT', category: 'Saúde', type: 'expense' },
+  { pattern: 'GYMPASS', category: 'Saúde', type: 'expense' },
+
+  // ── Lazer ─────────────────────────────────────────────────────────────
+  { pattern: 'NETFLIX', category: 'Lazer', type: 'expense' },
+  { pattern: 'SPOTIFY', category: 'Lazer', type: 'expense' },
+  { pattern: 'DISNEY+', category: 'Lazer', type: 'expense' },
+  { pattern: 'DISNEY PLUS', category: 'Lazer', type: 'expense' },
+  { pattern: 'PRIME VIDEO', category: 'Lazer', type: 'expense' },
+  { pattern: 'AMAZON PRIME', category: 'Lazer', type: 'expense' },
+  { pattern: 'HBO MAX', category: 'Lazer', type: 'expense' },
+  { pattern: 'GLOBOPLAY', category: 'Lazer', type: 'expense' },
+  { pattern: 'YOUTUBE PREMIUM', category: 'Lazer', type: 'expense' },
+  { pattern: 'DEEZER', category: 'Lazer', type: 'expense' },
+  { pattern: 'APPLE MUSIC', category: 'Lazer', type: 'expense' },
+  { pattern: 'STEAM', category: 'Lazer', type: 'expense' },
+  { pattern: 'PLAYSTATION', category: 'Lazer', type: 'expense' },
+  { pattern: 'XBOX', category: 'Lazer', type: 'expense' },
+  { pattern: 'NINTENDO', category: 'Lazer', type: 'expense' },
+  { pattern: 'CINEMA', category: 'Lazer', type: 'expense' },
+  { pattern: 'CINEMARK', category: 'Lazer', type: 'expense' },
+  { pattern: 'INGRESSO', category: 'Lazer', type: 'expense' },
+  { pattern: 'TEATRO', category: 'Lazer', type: 'expense' },
+  { pattern: 'BAR ', category: 'Lazer', type: 'expense' },
+
+  // ── Educação ──────────────────────────────────────────────────────────
+  { pattern: 'UDEMY', category: 'Educação', type: 'expense' },
+  { pattern: 'COURSERA', category: 'Educação', type: 'expense' },
+  { pattern: 'ALURA', category: 'Educação', type: 'expense' },
+  { pattern: 'ROCKETSEAT', category: 'Educação', type: 'expense' },
+  { pattern: 'FACULDADE', category: 'Educação', type: 'expense' },
+  { pattern: 'UNIVERSIDADE', category: 'Educação', type: 'expense' },
+  { pattern: 'MENSALIDADE', category: 'Educação', type: 'expense' },
+  { pattern: 'ESCOLA', category: 'Educação', type: 'expense' },
+  { pattern: 'LIVRARIA', category: 'Educação', type: 'expense' },
+  { pattern: 'KINDLE', category: 'Educação', type: 'expense' },
+];
