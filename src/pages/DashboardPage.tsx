@@ -1,6 +1,5 @@
 import { Layout } from '@/shared/components/Layout';
 import { BalanceHero } from '@/features/dashboard/components/BalanceHero';
-import { QuickActions } from '@/features/dashboard/components/QuickActions';
 import { SpendingHealth } from '@/features/dashboard/components/SpendingHealth';
 import { FlowChart } from '@/features/dashboard/components/FlowChart';
 import { CategoryBreakdown } from '@/features/dashboard/components/CategoryBreakdown';
@@ -30,8 +29,6 @@ export function DashboardPage() {
           expenses={m.totalExpenses}
           balanceDelta={m.balanceDelta}
         />
-
-        <QuickActions />
 
         {!m.hasData ? (
           <EmptyDashboard />
