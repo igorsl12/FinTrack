@@ -23,7 +23,7 @@ export function BalanceHero({
       className={[
         'rounded-3xl p-5 text-white relative overflow-hidden shadow-lg',
         isPositive
-          ? 'bg-gradient-to-br from-balance to-balance-dark'
+          ? 'bg-gradient-to-br from-income to-income-dark'
           : 'bg-gradient-to-br from-expense to-expense-dark',
       ].join(' ')}
     >
