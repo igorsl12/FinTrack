@@ -6,9 +6,11 @@ import {
   Upload,
   Database,
   Smartphone,
+  Palette,
 } from 'lucide-react';
 import { Layout } from '@/shared/components/Layout';
 import { Button } from '@/shared/components/Button';
+import { ThemeToggle } from '@/features/theme/components/ThemeToggle';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
   downloadBackup,
@@ -95,6 +97,20 @@ export function SettingsPage() {
   return (
     <Layout subtitle="Conta" title="Configurações">
       <div className="space-y-4">
+        <div className="card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Palette size={18} className="text-balance" />
+            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              Aparência
+            </h3>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+            Escolha entre tema claro, escuro ou seguir as configurações do
+            sistema.
+          </p>
+          <ThemeToggle />
+        </div>
+
         <div className="card p-4 bg-balance-light text-balance-dark">
           <div className="flex items-center gap-2 mb-1">
             <Smartphone size={18} />

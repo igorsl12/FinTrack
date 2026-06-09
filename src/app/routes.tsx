@@ -7,6 +7,7 @@ import { ImportPage } from '@/pages/ImportPage';
 import { PlansPage } from '@/pages/PlansPage';
 import { RecurringPage } from '@/pages/RecurringPage';
 import { BudgetPage } from '@/pages/BudgetPage';
+import { ForecastPage } from '@/pages/ForecastPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
@@ -71,6 +72,14 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <BudgetPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/forecast"
+        element={
+          <ProtectedRoute>
+            <ForecastPage />
           </ProtectedRoute>
         }
       />

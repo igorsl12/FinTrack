@@ -31,7 +31,7 @@ export function TransactionItem({
         {isIncome ? <ArrowUpRight size={20} /> : <ArrowDownLeft size={20} />}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-800 truncate flex items-center gap-1.5">
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate flex items-center gap-1.5">
           {transaction.description}
           {isRecurring && (
             <Repeat
@@ -41,9 +41,9 @@ export function TransactionItem({
             />
           )}
         </p>
-        <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500 flex-wrap">
+        <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
           <span>{formatDate(transaction.date)}</span>
-          <span className="badge bg-slate-100 text-slate-600">
+          <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
             {transaction.category}
           </span>
         </div>
