@@ -31,10 +31,10 @@ export function CategoryBreakdown({
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
             Onde seu dinheiro foi
           </h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Top {sorted.length} categorias do mês
           </p>
         </div>
@@ -53,15 +53,17 @@ export function CategoryBreakdown({
           return (
             <li key={category}>
               <div className="flex items-baseline justify-between text-xs">
-                <span className="font-medium text-slate-700">{category}</span>
-                <div className="flex items-baseline gap-2 text-slate-500">
-                  <span className="font-semibold text-slate-800">
+                <span className="font-medium text-slate-700 dark:text-slate-300">
+                  {category}
+                </span>
+                <div className="flex items-baseline gap-2 text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold text-slate-800 dark:text-slate-100">
                     {formatCurrency(value)}
                   </span>
                   <span className="tabular-nums">{formatPercent(pct, 0)}</span>
                 </div>
               </div>
-              <div className="mt-1.5 h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div className="mt-1.5 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                 <div
                   className={`h-full rounded-full ${BAR_COLORS[i % BAR_COLORS.length]} transition-all`}
                   style={{ width: `${Math.min(100, pct)}%` }}

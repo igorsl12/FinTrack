@@ -15,10 +15,12 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
             Últimas transações
           </h3>
-          <p className="text-xs text-slate-500">Os 5 lançamentos mais recentes</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Os 5 lançamentos mais recentes
+          </p>
         </div>
         <Link
           to="/history"
@@ -49,10 +51,10 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-800 truncate">
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
                   {t.description}
                 </p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   {formatDate(t.date)} · {t.category}
                 </p>
               </div>

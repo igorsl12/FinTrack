@@ -22,19 +22,19 @@ export function Layout({
   const { logout, currentUser } = useAuth();
 
   return (
-    <div className="min-h-screen flex justify-center bg-slate-100">
-      <div className="relative w-full max-w-[480px] bg-slate-50 shadow-app min-h-screen flex flex-col">
+    <div className="min-h-screen flex justify-center bg-slate-100 dark:bg-slate-950">
+      <div className="relative w-full max-w-[480px] bg-slate-50 dark:bg-slate-950 shadow-app min-h-screen flex flex-col">
         {(title || subtitle || trailing || showLogout) && (
-          <header className="px-5 pt-7 pb-4 bg-white border-b border-slate-200">
+          <header className="px-5 pt-7 pb-4 bg-white border-b border-slate-200 dark:bg-slate-900 dark:border-slate-800">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 {subtitle && (
-                  <p className="text-xs uppercase tracking-wide text-slate-500 mb-0.5 truncate">
+                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-0.5 truncate">
                     {subtitle}
                   </p>
                 )}
                 {title && (
-                  <h1 className="text-xl font-semibold text-slate-900 truncate">
+                  <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100 truncate">
                     {title}
                   </h1>
                 )}
@@ -46,7 +46,7 @@ export function Layout({
                     <Link
                       to="/settings"
                       aria-label="Configurações"
-                      className="h-9 w-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 flex items-center justify-center transition-colors"
+                      className="h-9 w-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-colors"
                     >
                       <Settings size={16} />
                     </Link>
@@ -55,7 +55,7 @@ export function Layout({
                       onClick={logout}
                       aria-label="Sair"
                       title={`Sair (${currentUser.email})`}
-                      className="h-9 w-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 flex items-center justify-center transition-colors"
+                      className="h-9 w-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-colors"
                     >
                       <LogOut size={16} />
                     </button>

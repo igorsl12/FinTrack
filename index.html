@@ -20,6 +20,22 @@
     <meta name="application-name" content="FinTrack" />
 
     <title>FinTrack — Controle Financeiro</title>
+
+    <!-- Bootstrap dark class before render so the page never flashes light. -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('fintrack:theme');
+          var pref = 'system';
+          if (raw) pref = (JSON.parse(raw).state || {}).preference || 'system';
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
