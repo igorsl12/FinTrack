@@ -5,6 +5,10 @@ import { useTransactionStore } from '@/features/transactions/store/transactionSt
 import { useRecurringStore } from '@/features/recurring/store/recurringStore';
 import { useBudgetStore } from '@/features/budget/store/budgetStore';
 import { useCustomCategoryStore } from '@/features/categories/store/customCategoryStore';
+import {
+  applyTheme,
+  useThemeStore,
+} from '@/features/theme/store/themeStore';
 import { materializeRecurrings } from '@/features/recurring/materialize';
 import { UpdateBanner } from '@/shared/components/UpdateBanner';
 
@@ -25,6 +29,27 @@ export default function App() {
 
   const loadCategoriesForUser = useCustomCategoryStore((s) => s.loadForUser);
   const clearCategories = useCustomCategoryStore((s) => s.clear);
+
+  const themePreference = useThemeStore((s) => s.preference);
+
+  // Apply the theme whenever the preference changes (including initial mount
+  // and after persist rehydration).
+  useEffect(() => {
+    applyTheme(themePreference);
+  }, [themePreference]);
+
+  // Re-apply the theme when the OS color-scheme changes, but only if the
+  // user is on the "system" preference.
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => {
+      if (useThemeStore.getState().preference === 'system') {
+        applyTheme('system');
+      }
+    };
+    media.addEventListener('change', handler);
+    return () => media.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     void initialize();
