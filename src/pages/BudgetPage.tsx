@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Target, Trash2 } from 'lucide-react';
+import { Plus, Sparkles, Target, Trash2 } from 'lucide-react';
 import { Layout } from '@/shared/components/Layout';
 import { Button } from '@/shared/components/Button';
 import { useBudgetStore } from '@/features/budget/store/budgetStore';
 import { useBudgetProgress } from '@/features/budget/hooks/useBudgetProgress';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import {
-  EXPENSE_CATEGORIES,
-  type ExpenseCategory,
-} from '@/features/transactions/types';
+import { useCategories } from '@/features/categories/hooks/useCategories';
+import { useCustomCategoryStore } from '@/features/categories/store/customCategoryStore';
+import { AddCategoryDialog } from '@/features/categories/components/AddCategoryDialog';
+import type { Category } from '@/features/transactions/types';
 import { formatCurrency, formatPercent } from '@/shared/utils/currency';
 
 export function BudgetPage() {
@@ -20,7 +20,18 @@ export function BudgetPage() {
   const setBudget = useBudgetStore((s) => s.setBudget);
   const removeBudget = useBudgetStore((s) => s.removeBudget);
 
+  const categories = useCategories();
+  const customItems = useCustomCategoryStore((s) => s.items);
+  const removeCustomCategory = useCustomCategoryStore((s) => s.remove);
+
   const progress = useBudgetProgress();
+
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [addOpen, setAddOpen] = useState(false);
+  const [confirmCategoryDelete, setConfirmCategoryDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!userId) clear();
@@ -29,16 +40,19 @@ export function BudgetPage() {
 
   const budgetByCategory = new Map(budgets.map((b) => [b.category, b]));
   const progressByCategory = new Map(progress.map((p) => [p.category, p]));
+  const customByName = new Map(
+    customItems.filter((c) => c.type === 'expense').map((c) => [c.name, c]),
+  );
 
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const expenseCategories: Category[] = categories.expense.map((e) => e.name);
 
-  function getDraft(category: ExpenseCategory): string {
+  function getDraft(category: Category): string {
     if (drafts[category] !== undefined) return drafts[category];
     const existing = budgetByCategory.get(category);
     return existing ? String(existing.monthlyLimit) : '';
   }
 
-  async function saveDraft(category: ExpenseCategory) {
+  async function saveDraft(category: Category) {
     const raw = drafts[category];
     if (raw === undefined) return;
     const value = Math.max(0, Number(raw.replace(',', '.')));
@@ -54,6 +68,14 @@ export function BudgetPage() {
       delete next[category];
       return next;
     });
+  }
+
+  async function handleDeleteCategory() {
+    if (!confirmCategoryDelete) return;
+    const existingBudget = budgetByCategory.get(confirmCategoryDelete.name);
+    if (existingBudget) await removeBudget(existingBudget.id);
+    await removeCustomCategory(confirmCategoryDelete.id);
+    setConfirmCategoryDelete(null);
   }
 
   const totalLimit = budgets.reduce((sum, b) => sum + b.monthlyLimit, 0);
@@ -93,26 +115,64 @@ export function BudgetPage() {
           )}
         </div>
 
+        <Button
+          icon={Plus}
+          variant="secondary"
+          className="w-full"
+          onClick={() => setAddOpen(true)}
+        >
+          Nova categoria
+        </Button>
+
         <ul className="space-y-2">
-          {EXPENSE_CATEGORIES.map((c) => {
+          {expenseCategories.map((c) => {
             const draftValue = getDraft(c);
             const prog = progressByCategory.get(c);
             const existing = budgetByCategory.get(c);
             const isDirty = drafts[c] !== undefined;
+            const custom = customByName.get(c);
             return (
               <li key={c} className="card p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-slate-800">{c}</p>
-                  {existing && (
-                    <button
-                      type="button"
-                      onClick={() => void removeBudget(existing.id)}
-                      aria-label="Remover limite"
-                      className="text-slate-400 hover:text-expense"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
+                  <p className="text-sm font-medium text-slate-800 flex items-center gap-1.5">
+                    {c}
+                    {custom && (
+                      <Sparkles
+                        size={12}
+                        className="text-balance"
+                        aria-label="Categoria personalizada"
+                      />
+                    )}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    {existing && (
+                      <button
+                        type="button"
+                        onClick={() => void removeBudget(existing.id)}
+                        aria-label="Remover limite"
+                        title="Remover limite"
+                        className="text-slate-400 hover:text-expense"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                    {custom && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setConfirmCategoryDelete({
+                            id: custom.id,
+                            name: custom.name,
+                          })
+                        }
+                        aria-label="Excluir categoria"
+                        title="Excluir categoria"
+                        className="text-slate-400 hover:text-expense"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <div className="flex-1 flex items-center gap-2">
@@ -176,6 +236,42 @@ export function BudgetPage() {
           })}
         </ul>
       </div>
+
+      <AddCategoryDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        fixedType="expense"
+      />
+
+      {confirmCategoryDelete && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-slate-900/40 px-4 pb-24 sm:pb-4"
+        >
+          <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl">
+            <h2 className="text-base font-semibold text-slate-900">
+              Excluir categoria "{confirmCategoryDelete.name}"?
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Transações já lançadas com essa categoria continuam existindo,
+              mas a categoria não poderá mais ser escolhida em novos
+              lançamentos.
+            </p>
+            <div className="mt-4 flex gap-2 justify-end">
+              <Button
+                variant="ghost"
+                onClick={() => setConfirmCategoryDelete(null)}
+              >
+                Cancelar
+              </Button>
+              <Button variant="danger" onClick={() => void handleDeleteCategory()}>
+                Excluir
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

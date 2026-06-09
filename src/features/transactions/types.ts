@@ -15,7 +15,17 @@ export type ExpenseCategory =
   | 'Educação'
   | 'Outros (despesa)';
 
-export type Category = IncomeCategory | ExpenseCategory;
+/**
+ * Category names are stored as plain strings to support user-defined
+ * custom categories. The `IncomeCategory | ExpenseCategory` unions are
+ * kept inside the `string` intersection trick so editors still autocomplete
+ * the built-in names while accepting any string at runtime.
+ */
+export type Category =
+  | IncomeCategory
+  | ExpenseCategory
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  | (string & {});
 
 export interface Transaction {
   id: string;

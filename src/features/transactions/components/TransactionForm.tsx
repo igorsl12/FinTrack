@@ -2,13 +2,12 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowDownCircle, ArrowUpCircle, CheckCircle2, Repeat, X } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import {
-  EXPENSE_CATEGORIES,
-  INCOME_CATEGORIES,
   type Category,
   type Transaction,
   type TransactionType,
 } from '../types';
 import { useTransactions } from '../hooks/useTransactions';
+import { useCategories } from '@/features/categories/hooks/useCategories';
 import { getTodayKey } from '@/shared/utils/date';
 import { parseCurrency } from '@/shared/utils/currency';
 import { recurringRepository } from '@/shared/db/recurringRepository';
@@ -36,6 +35,7 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const isEditing = !!editing;
   const { addTransaction, updateTransaction } = useTransactions();
+  const categories = useCategories();
 
   const [type, setType] = useState<TransactionType>(editing?.type ?? 'expense');
   const [description, setDescription] = useState(editing?.description ?? '');
@@ -67,8 +67,7 @@ export function TransactionForm({
     }
   }, [editing]);
 
-  const categories: Category[] =
-    type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const categoryEntries = categories.entriesFor(type);
   const amount = parseCurrency(amountInput);
 
   const errors: FieldErrors = {
@@ -218,9 +217,10 @@ export function TransactionForm({
           className="form-input"
         >
           <option value="">Selecione...</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
+          {categoryEntries.map((entry) => (
+            <option key={entry.name} value={entry.name}>
+              {entry.name}
+              {entry.custom ? ' ★' : ''}
             </option>
           ))}
         </select>

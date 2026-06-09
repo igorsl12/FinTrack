@@ -19,11 +19,8 @@ import {
   type ReportPeriod,
 } from '@/features/reports/hooks/useReportData';
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
-import {
-  EXPENSE_CATEGORIES,
-  INCOME_CATEGORIES,
-  type Category,
-} from '@/features/transactions/types';
+import { useCategories } from '@/features/categories/hooks/useCategories';
+import { type Category } from '@/features/transactions/types';
 import { formatCurrency, formatPercent } from '@/shared/utils/currency';
 import { getCurrentMonthKey, getMonthLabel } from '@/shared/utils/date';
 
@@ -47,6 +44,7 @@ const PERIODS: { value: ReportPeriod; label: string }[] = [
 
 export function ReportPage() {
   const { availableMonths } = useTransactions();
+  const categories = useCategories();
   const [period, setPeriod] = useState<ReportPeriod>('month');
   const [month, setMonth] = useState<string>(getCurrentMonthKey());
   const [category, setCategory] = useState<Category | ''>('');
@@ -68,10 +66,7 @@ export function ReportPage() {
     value: Number(item.value.toFixed(2)),
   }));
 
-  const allCategories: Category[] = [
-    ...INCOME_CATEGORIES,
-    ...EXPENSE_CATEGORIES,
-  ];
+  const allCategories: Category[] = categories.all.map((c) => c.name);
 
   return (
     <Layout subtitle="Análises" title="Relatório">

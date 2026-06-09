@@ -20,6 +20,7 @@ import { useTransactionStore } from '@/features/transactions/store/transactionSt
 import { useRecurringStore } from '@/features/recurring/store/recurringStore';
 import { useBudgetStore } from '@/features/budget/store/budgetStore';
 import { usePlansStore } from '@/features/plans/store/plansStore';
+import { useCustomCategoryStore } from '@/features/categories/store/customCategoryStore';
 
 export function SettingsPage() {
   const { currentUser } = useAuth();
@@ -35,6 +36,7 @@ export function SettingsPage() {
   const reloadRec = useRecurringStore((s) => s.loadForUser);
   const reloadBudget = useBudgetStore((s) => s.loadForUser);
   const reloadPlans = usePlansStore((s) => s.loadForUser);
+  const reloadCategories = useCustomCategoryStore((s) => s.loadForUser);
 
   async function handleExport() {
     if (!currentUser) return;
@@ -73,11 +75,12 @@ export function SettingsPage() {
           reloadRec(result.userId),
           reloadBudget(result.userId),
           reloadPlans(result.userId),
+          reloadCategories(result.userId),
         ]);
       }
       setMessage({
         kind: 'ok',
-        text: `Importado: ${result.counts.transactions} transações, ${result.counts.plans} planos, ${result.counts.budgets} orçamentos, ${result.counts.recurrings} recorrências, ${result.counts.categoryRules} regras.`,
+        text: `Importado: ${result.counts.transactions} transações, ${result.counts.plans} planos, ${result.counts.budgets} orçamentos, ${result.counts.recurrings} recorrências, ${result.counts.categoryRules} regras, ${result.counts.customCategories} categorias.`,
       });
     } catch (err) {
       setMessage({

@@ -4,6 +4,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { useTransactionStore } from '@/features/transactions/store/transactionStore';
 import { useRecurringStore } from '@/features/recurring/store/recurringStore';
 import { useBudgetStore } from '@/features/budget/store/budgetStore';
+import { useCustomCategoryStore } from '@/features/categories/store/customCategoryStore';
 import { materializeRecurrings } from '@/features/recurring/materialize';
 import { UpdateBanner } from '@/shared/components/UpdateBanner';
 
@@ -22,6 +23,9 @@ export default function App() {
   const loadBudgetForUser = useBudgetStore((s) => s.loadForUser);
   const clearBudget = useBudgetStore((s) => s.clear);
 
+  const loadCategoriesForUser = useCustomCategoryStore((s) => s.loadForUser);
+  const clearCategories = useCustomCategoryStore((s) => s.clear);
+
   useEffect(() => {
     void initialize();
   }, [initialize]);
@@ -33,6 +37,7 @@ export default function App() {
         clearTx();
         clearRecurring();
         clearBudget();
+        clearCategories();
       }
       return;
     }
@@ -43,6 +48,7 @@ export default function App() {
       await Promise.all([
         loadRecurringForUser(currentUserId),
         loadBudgetForUser(currentUserId),
+        loadCategoriesForUser(currentUserId),
       ]);
     })();
   }, [
@@ -52,9 +58,11 @@ export default function App() {
     loadTxForUser,
     loadRecurringForUser,
     loadBudgetForUser,
+    loadCategoriesForUser,
     clearTx,
     clearRecurring,
     clearBudget,
+    clearCategories,
   ]);
 
   return (

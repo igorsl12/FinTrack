@@ -3,6 +3,7 @@ import {
   db,
   type BudgetRecord,
   type CategoryRuleRecord,
+  type CustomCategoryRecord,
   type PlanRecord,
   type RecurringRecord,
   type TransactionRecord,
@@ -11,7 +12,8 @@ import {
 
 export interface BackupFile {
   app: 'fintrack';
-  version: 1;
+  /** v2 adds customCategories. Older v1 backups are still importable. */
+  version: 1 | 2;
   exportedAt: string;
   /** User record including hashed password — safe to import on another device. */
   user: UserRecord;
@@ -20,6 +22,7 @@ export interface BackupFile {
   plans: PlanRecord[];
   recurrings: RecurringRecord[];
   budgets: BudgetRecord[];
+  customCategories?: CustomCategoryRecord[];
 }
 
 export interface ImportResult {
@@ -31,6 +34,7 @@ export interface ImportResult {
     plans: number;
     recurrings: number;
     budgets: number;
+    customCategories: number;
   };
 }
 
@@ -44,18 +48,25 @@ export async function exportUserData(userId: string): Promise<BackupFile> {
   const user = await db.users.get(userId);
   if (!user) throw new Error('Usuário não encontrado para exportar.');
 
-  const [transactions, categoryRules, plans, recurrings, budgets] =
-    await Promise.all([
-      db.transactions.where('userId').equals(userId).toArray(),
-      db.categoryRules.where('userId').equals(userId).toArray(),
-      db.plans.where('userId').equals(userId).toArray(),
-      db.recurrings.where('userId').equals(userId).toArray(),
-      db.budgets.where('userId').equals(userId).toArray(),
-    ]);
+  const [
+    transactions,
+    categoryRules,
+    plans,
+    recurrings,
+    budgets,
+    customCategories,
+  ] = await Promise.all([
+    db.transactions.where('userId').equals(userId).toArray(),
+    db.categoryRules.where('userId').equals(userId).toArray(),
+    db.plans.where('userId').equals(userId).toArray(),
+    db.recurrings.where('userId').equals(userId).toArray(),
+    db.budgets.where('userId').equals(userId).toArray(),
+    db.customCategories.where('userId').equals(userId).toArray(),
+  ]);
 
   return {
     app: 'fintrack',
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     user,
     transactions,
@@ -63,6 +74,7 @@ export async function exportUserData(userId: string): Promise<BackupFile> {
     plans,
     recurrings,
     budgets,
+    customCategories,
   };
 }
 
@@ -86,7 +98,11 @@ export function downloadBackup(backup: BackupFile): string {
 function isBackupFile(value: unknown): value is BackupFile {
   if (!value || typeof value !== 'object') return false;
   const v = value as Partial<BackupFile>;
-  return v.app === 'fintrack' && v.version === 1 && !!v.user;
+  return (
+    v.app === 'fintrack' &&
+    (v.version === 1 || v.version === 2) &&
+    !!v.user
+  );
 }
 
 /**
@@ -112,9 +128,19 @@ export async function importBackup(file: File): Promise<ImportResult> {
   const backup = parsed;
   const userId = backup.user.id;
 
+  const customCategories = backup.customCategories ?? [];
+
   await db.transaction(
     'rw',
-    [db.users, db.transactions, db.categoryRules, db.plans, db.recurrings, db.budgets],
+    [
+      db.users,
+      db.transactions,
+      db.categoryRules,
+      db.plans,
+      db.recurrings,
+      db.budgets,
+      db.customCategories,
+    ],
     async () => {
       await db.users.put(backup.user);
 
@@ -123,6 +149,7 @@ export async function importBackup(file: File): Promise<ImportResult> {
       await db.plans.where('userId').equals(userId).delete();
       await db.recurrings.where('userId').equals(userId).delete();
       await db.budgets.where('userId').equals(userId).delete();
+      await db.customCategories.where('userId').equals(userId).delete();
 
       if (backup.transactions.length > 0) {
         await db.transactions.bulkAdd(backup.transactions);
@@ -139,6 +166,9 @@ export async function importBackup(file: File): Promise<ImportResult> {
       if (backup.budgets.length > 0) {
         await db.budgets.bulkAdd(backup.budgets);
       }
+      if (customCategories.length > 0) {
+        await db.customCategories.bulkAdd(customCategories);
+      }
     },
   );
 
@@ -151,6 +181,7 @@ export async function importBackup(file: File): Promise<ImportResult> {
       plans: backup.plans.length,
       recurrings: backup.recurrings.length,
       budgets: backup.budgets.length,
+      customCategories: customCategories.length,
     },
   };
 }

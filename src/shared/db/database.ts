@@ -72,6 +72,14 @@ export interface BudgetRecord {
   updatedAt: string;
 }
 
+export interface CustomCategoryRecord {
+  id: string;
+  userId: string;
+  name: string;
+  type: TransactionType;
+  createdAt: string;
+}
+
 /**
  * Local database for FinTrack.
  *
@@ -86,6 +94,7 @@ export class FinTrackDB extends Dexie {
   plans!: Table<PlanRecord, string>;
   recurrings!: Table<RecurringRecord, string>;
   budgets!: Table<BudgetRecord, string>;
+  customCategories!: Table<CustomCategoryRecord, string>;
 
   constructor() {
     super('fintrack');
@@ -111,6 +120,15 @@ export class FinTrackDB extends Dexie {
       plans: 'id, userId, createdAt',
       recurrings: 'id, userId, active, [userId+active]',
       budgets: 'id, userId, category, [userId+category]',
+    });
+    this.version(5).stores({
+      users: 'id, &email',
+      transactions: 'id, userId, date, type, category, [userId+date], *tags',
+      categoryRules: 'id, userId, pattern, [userId+pattern]',
+      plans: 'id, userId, createdAt',
+      recurrings: 'id, userId, active, [userId+active]',
+      budgets: 'id, userId, category, [userId+category]',
+      customCategories: 'id, userId, type, [userId+type], [userId+name]',
     });
   }
 }
