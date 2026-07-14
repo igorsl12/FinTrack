@@ -25,6 +25,13 @@ signing-key-info.txt
 # App data backups (contain hashed passwords + transactions)
 fintrack-backup*.json
 
+# Faturas / extratos pessoais — NUNCA commitar (dados financeiros sensíveis)
+Fatura.pdf
+*fatura*.pdf
+*fatura*.csv
+*extrato*.pdf
+*extrato*.csv
+
 # Secrets / env
 .env
 .env.*
