@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   CheckCircle2,
   FileSpreadsheet,
+  Lock,
   Sparkles,
   Upload,
 } from 'lucide-react';
@@ -30,12 +31,15 @@ export function ImportPage() {
     parsing,
     confirming,
     error,
+    needsPassword,
     loadFile,
+    submitPassword,
     updateItem,
     setAllSelected,
     confirm,
     reset,
   } = useImport();
+  const [password, setPassword] = useState('');
 
   function openPicker() {
     fileInputRef.current?.click();
@@ -68,8 +72,9 @@ export function ImportPage() {
         {!preview ? (
           <>
             <p className="text-sm text-slate-600">
-              Envie um arquivo CSV do seu banco. O FinTrack identifica
-              automaticamente as categorias e você revisa antes de salvar.
+              Envie o CSV do extrato ou o <strong>PDF da fatura do cartão</strong>.
+              O FinTrack identifica automaticamente as categorias e você revisa
+              antes de salvar.
             </p>
 
             <div className="card p-6 text-center">
@@ -77,10 +82,10 @@ export function ImportPage() {
                 <FileSpreadsheet size={26} />
               </div>
               <p className="mt-3 text-sm font-medium text-slate-800">
-                Selecione o arquivo CSV
+                Selecione o arquivo (CSV ou PDF)
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                Suportamos Nubank (cartão e conta), Inter e formato genérico.
+                Extrato CSV (Nubank, Inter e genérico) ou fatura de cartão em PDF.
               </p>
               <Button
                 size="lg"
@@ -94,11 +99,47 @@ export function ImportPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv,text/csv"
+                accept=".csv,text/csv,.pdf,application/pdf"
                 onChange={handleFile}
                 className="hidden"
               />
             </div>
+
+            {needsPassword && (
+              <form
+                className="card p-4 space-y-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (password.trim()) submitPassword(password.trim());
+                }}
+              >
+                <div className="flex items-center gap-2 text-balance-dark">
+                  <Lock size={18} />
+                  <p className="text-sm font-medium">PDF protegido por senha</p>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Digite a senha da fatura para abrir o arquivo. Ela é usada só
+                  aqui no seu dispositivo e não é salva em lugar nenhum.
+                </p>
+                <input
+                  type="password"
+                  autoFocus
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Senha do PDF"
+                  className="w-full h-10 rounded-lg border border-slate-200 px-3 text-sm bg-white outline-none focus:border-balance focus:ring-2 focus:ring-balance/20"
+                />
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  loading={parsing}
+                  disabled={!password.trim()}
+                >
+                  Abrir fatura
+                </Button>
+              </form>
+            )}
 
             {error && (
               <div className="card p-3 bg-expense-light text-expense-dark text-sm">
@@ -111,6 +152,7 @@ export function ImportPage() {
                 Como exportar do meu banco?
               </summary>
               <ul className="mt-2 space-y-1 list-disc list-inside text-xs">
+                <li>Fatura do cartão: baixe o PDF no app do banco e envie aqui.</li>
                 <li>Nubank: app → Histórico → Exportar extrato (CSV).</li>
                 <li>Inter: Extrato → Filtrar período → Exportar CSV.</li>
                 <li>Itaú: Internet banking → Extrato → Exportar.</li>

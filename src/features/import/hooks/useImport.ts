@@ -45,38 +45,88 @@ export function useImport() {
   const [parsing, setParsing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // When a protected PDF is chosen we hold onto it so the user can retry with
+  // a password. The password itself is never stored — only used in-memory.
+  const [pendingPdf, setPendingPdf] = useState<File | null>(null);
+  const [needsPassword, setNeedsPassword] = useState(false);
 
   const reset = useCallback(() => {
     setPreview(null);
     setError(null);
+    setPendingPdf(null);
+    setNeedsPassword(false);
   }, []);
 
-  const loadFile = useCallback(async (file: File) => {
-    setParsing(true);
-    setError(null);
-    try {
-      const text = await file.text();
-      const result = parseCsvStatement(text);
-      if (!result.ok) {
-        setError(result.error);
-        setPreview(null);
-        return;
+  const buildPreview = useCallback(async (rows: ParsedRow[], profileName: string) => {
+    const userId = useAuthStore.getState().currentUser?.id;
+    const userRules = userId
+      ? await categoryRuleRepository.listByUser(userId)
+      : [];
+    const items: PreviewItem[] = rows.map((row) => toPreviewItem(row, userRules));
+    setPreview({ profileName, items });
+  }, []);
+
+  const loadFile = useCallback(
+    async (file: File) => {
+      setParsing(true);
+      setError(null);
+      setNeedsPassword(false);
+      setPendingPdf(null);
+      try {
+        const isPdf =
+          file.type === 'application/pdf' ||
+          file.name.toLowerCase().endsWith('.pdf');
+        const result = isPdf
+          ? await (await import('../parsers/pdf')).parsePdfStatement(file)
+          : parseCsvStatement(await file.text());
+        if (!result.ok) {
+          if ('needsPassword' in result && result.needsPassword) {
+            setPendingPdf(file);
+            setNeedsPassword(true);
+          }
+          setError(result.error);
+          setPreview(null);
+          return;
+        }
+        await buildPreview(result.statement.rows, result.statement.profileName);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Falha ao ler o arquivo.');
+      } finally {
+        setParsing(false);
       }
-      const userId = useAuthStore.getState().currentUser?.id;
-      const userRules = userId
-        ? await categoryRuleRepository.listByUser(userId)
-        : [];
+    },
+    [buildPreview],
+  );
 
-      const items: PreviewItem[] = result.statement.rows.map((row) =>
-        toPreviewItem(row, userRules),
-      );
-      setPreview({ profileName: result.statement.profileName, items });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Falha ao ler o arquivo.');
-    } finally {
-      setParsing(false);
-    }
-  }, []);
+  const submitPassword = useCallback(
+    async (password: string) => {
+      if (!pendingPdf) return;
+      setParsing(true);
+      setError(null);
+      try {
+        const result = await (
+          await import('../parsers/pdf')
+        ).parsePdfStatement(pendingPdf, password);
+        if (!result.ok) {
+          setError(result.error);
+          // Keep the password prompt open only while it's still a password
+          // problem; other errors mean the file is unusable.
+          setNeedsPassword(
+            'needsPassword' in result ? !!result.needsPassword : false,
+          );
+          return;
+        }
+        setNeedsPassword(false);
+        setPendingPdf(null);
+        await buildPreview(result.statement.rows, result.statement.profileName);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Falha ao ler o arquivo.');
+      } finally {
+        setParsing(false);
+      }
+    },
+    [pendingPdf, buildPreview],
+  );
 
   const updateItem = useCallback(
     (id: string, patch: Partial<PreviewItem>) => {
@@ -164,7 +214,9 @@ export function useImport() {
     parsing,
     confirming,
     error,
+    needsPassword,
     loadFile,
+    submitPassword,
     updateItem,
     setAllSelected,
     confirm,
