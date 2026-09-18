@@ -30,7 +30,7 @@ export default defineConfig({
         name: 'FinTrack — Controle Financeiro',
         short_name: 'FinTrack',
         description:
-          'Acompanhe receitas, despesas, planos e orçamento — local-first.',
+          'Acompanhe receitas, despesas e orçamento — local-first.',
         theme_color: '#378ADD',
         background_color: '#F1F5F9',
         display: 'standalone',

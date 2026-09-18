@@ -4,7 +4,6 @@ import {
   type BudgetRecord,
   type CategoryRuleRecord,
   type CustomCategoryRecord,
-  type PlanRecord,
   type RecurringRecord,
   type TransactionRecord,
   type UserRecord,
@@ -12,14 +11,13 @@ import {
 
 export interface BackupFile {
   app: 'fintrack';
-  /** v2 adds customCategories. Older v1 backups are still importable. */
-  version: 1 | 2;
+  /** v3 drops plans. Older v1/v2 backups are still importable (plans ignored). */
+  version: 1 | 2 | 3;
   exportedAt: string;
   /** User record including hashed password — safe to import on another device. */
   user: UserRecord;
   transactions: TransactionRecord[];
   categoryRules: CategoryRuleRecord[];
-  plans: PlanRecord[];
   recurrings: RecurringRecord[];
   budgets: BudgetRecord[];
   customCategories?: CustomCategoryRecord[];
@@ -31,7 +29,6 @@ export interface ImportResult {
   counts: {
     transactions: number;
     categoryRules: number;
-    plans: number;
     recurrings: number;
     budgets: number;
     customCategories: number;
@@ -48,30 +45,22 @@ export async function exportUserData(userId: string): Promise<BackupFile> {
   const user = await db.users.get(userId);
   if (!user) throw new Error('Usuário não encontrado para exportar.');
 
-  const [
-    transactions,
-    categoryRules,
-    plans,
-    recurrings,
-    budgets,
-    customCategories,
-  ] = await Promise.all([
-    db.transactions.where('userId').equals(userId).toArray(),
-    db.categoryRules.where('userId').equals(userId).toArray(),
-    db.plans.where('userId').equals(userId).toArray(),
-    db.recurrings.where('userId').equals(userId).toArray(),
-    db.budgets.where('userId').equals(userId).toArray(),
-    db.customCategories.where('userId').equals(userId).toArray(),
-  ]);
+  const [transactions, categoryRules, recurrings, budgets, customCategories] =
+    await Promise.all([
+      db.transactions.where('userId').equals(userId).toArray(),
+      db.categoryRules.where('userId').equals(userId).toArray(),
+      db.recurrings.where('userId').equals(userId).toArray(),
+      db.budgets.where('userId').equals(userId).toArray(),
+      db.customCategories.where('userId').equals(userId).toArray(),
+    ]);
 
   return {
     app: 'fintrack',
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     user,
     transactions,
     categoryRules,
-    plans,
     recurrings,
     budgets,
     customCategories,
@@ -100,7 +89,7 @@ function isBackupFile(value: unknown): value is BackupFile {
   const v = value as Partial<BackupFile>;
   return (
     v.app === 'fintrack' &&
-    (v.version === 1 || v.version === 2) &&
+    (v.version === 1 || v.version === 2 || v.version === 3) &&
     !!v.user
   );
 }
@@ -136,7 +125,6 @@ export async function importBackup(file: File): Promise<ImportResult> {
       db.users,
       db.transactions,
       db.categoryRules,
-      db.plans,
       db.recurrings,
       db.budgets,
       db.customCategories,
@@ -146,7 +134,6 @@ export async function importBackup(file: File): Promise<ImportResult> {
 
       await db.transactions.where('userId').equals(userId).delete();
       await db.categoryRules.where('userId').equals(userId).delete();
-      await db.plans.where('userId').equals(userId).delete();
       await db.recurrings.where('userId').equals(userId).delete();
       await db.budgets.where('userId').equals(userId).delete();
       await db.customCategories.where('userId').equals(userId).delete();
@@ -156,9 +143,6 @@ export async function importBackup(file: File): Promise<ImportResult> {
       }
       if (backup.categoryRules.length > 0) {
         await db.categoryRules.bulkAdd(backup.categoryRules);
-      }
-      if (backup.plans.length > 0) {
-        await db.plans.bulkAdd(backup.plans);
       }
       if (backup.recurrings.length > 0) {
         await db.recurrings.bulkAdd(backup.recurrings);
@@ -178,7 +162,6 @@ export async function importBackup(file: File): Promise<ImportResult> {
     counts: {
       transactions: backup.transactions.length,
       categoryRules: backup.categoryRules.length,
-      plans: backup.plans.length,
       recurrings: backup.recurrings.length,
       budgets: backup.budgets.length,
       customCategories: customCategories.length,
