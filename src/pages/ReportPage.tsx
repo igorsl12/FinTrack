@@ -7,13 +7,14 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
-import { Filter, Sparkles, X } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 import { Layout } from '@/shared/components/Layout';
 import { Button } from '@/shared/components/Button';
 import { MetricCard } from '@/features/dashboard/components/MetricCard';
 import { HealthBadge } from '@/features/reports/components/HealthBadge';
 import { CategoryRanking } from '@/features/reports/components/CategoryRanking';
 import { MonthlyComparison } from '@/features/reports/components/MonthlyComparison';
+import { PeriodFilter } from '@/shared/components/PeriodFilter';
 import {
   useReportData,
   type ReportPeriod,
@@ -22,7 +23,7 @@ import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { useCategories } from '@/features/categories/hooks/useCategories';
 import { type Category } from '@/features/transactions/types';
 import { formatCurrency, formatPercent } from '@/shared/utils/currency';
-import { getCurrentMonthKey, getMonthLabel } from '@/shared/utils/date';
+import { getCurrentMonthKey } from '@/shared/utils/date';
 
 const PIE_COLORS = [
   '#E24B4A',
@@ -32,14 +33,6 @@ const PIE_COLORS = [
   '#A855F7',
   '#0EA5E9',
   '#F472B6',
-];
-
-const PERIODS: { value: ReportPeriod; label: string }[] = [
-  { value: 'month', label: 'Mês' },
-  { value: 'last3', label: '3 meses' },
-  { value: 'last6', label: '6 meses' },
-  { value: 'year', label: '12 meses' },
-  { value: 'all', label: 'Tudo' },
 ];
 
 export function ReportPage() {
@@ -66,74 +59,21 @@ export function ReportPage() {
     value: Number(item.value.toFixed(2)),
   }));
 
-  const allCategories: Category[] = categories.all.map((c) => c.name);
-
   return (
     <Layout subtitle="Análises" title="Relatório">
       <div className="space-y-4">
-        <div className="card p-3 space-y-2">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Filter size={12} />
-            <span>Filtros</span>
-          </div>
-          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-            {PERIODS.map((p) => (
-              <button
-                key={p.value}
-                type="button"
-                onClick={() => setPeriod(p.value)}
-                className={[
-                  'shrink-0 px-3 h-8 rounded-full text-xs font-medium border transition-colors',
-                  period === p.value
-                    ? 'bg-balance text-white border-balance'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50',
-                ].join(' ')}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {period === 'month' && (
-              <select
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                className="h-9 rounded-xl border border-slate-200 px-2 text-xs bg-white outline-none focus:border-balance focus:ring-2 focus:ring-balance/20"
-              >
-                {availableMonths.length === 0 && (
-                  <option value={getCurrentMonthKey()}>
-                    {getMonthLabel(getCurrentMonthKey())}
-                  </option>
-                )}
-                {availableMonths.map((m) => (
-                  <option key={m} value={m}>
-                    {getMonthLabel(m)}
-                  </option>
-                ))}
-              </select>
-            )}
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
-              className={
-                period === 'month'
-                  ? 'h-9 rounded-xl border border-slate-200 px-2 text-xs bg-white outline-none focus:border-balance focus:ring-2 focus:ring-balance/20'
-                  : 'h-9 col-span-2 rounded-xl border border-slate-200 px-2 text-xs bg-white outline-none focus:border-balance focus:ring-2 focus:ring-balance/20'
-              }
-            >
-              <option value="">Todas as categorias</option>
-              {allCategories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-          <p className="text-[11px] text-slate-500">
-            Exibindo: <strong>{r.label}</strong>
-            {category && ` · ${category}`}
-          </p>
-        </div>
+        <PeriodFilter
+          period={period}
+          month={month}
+          category={category}
+          availableMonths={availableMonths}
+          incomeCategories={categories.income}
+          expenseCategories={categories.expense}
+          resultLabel={r.label}
+          onPeriodChange={setPeriod}
+          onMonthChange={setMonth}
+          onCategoryChange={setCategory}
+        />
 
         <HealthBadge status={r.health} />
 

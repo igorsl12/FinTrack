@@ -42,4 +42,26 @@
   .surface-header {
     @apply bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800;
   }
+
+  /* Reveal for the collapsed report filters. */
+  .filter-panel {
+    animation: filter-reveal 180ms ease-out;
+  }
+}
+
+@keyframes filter-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-panel {
+    animation: none;
+  }
 }

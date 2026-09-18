@@ -1,14 +1,17 @@
 import { useMemo } from 'react';
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { getCurrentMonthKey, offsetMonthKey } from '@/shared/utils/date';
-import type {
-  Category,
-  TransactionFilters,
-} from '@/features/transactions/types';
+import {
+  periodLabel,
+  periodToFilters,
+  type Period,
+} from '@/features/transactions/utils/period';
+import type { Category } from '@/features/transactions/types';
 
 export type HealthStatus = 'healthy' | 'attention' | 'deficit';
 
-export type ReportPeriod = 'month' | 'last3' | 'last6' | 'year' | 'all';
+/** @deprecated Use `Period` from features/transactions/utils/period. */
+export type ReportPeriod = Period;
 
 export interface ReportFilters {
   period: ReportPeriod;
@@ -25,45 +28,6 @@ export interface ReportInsights {
   message: string;
 }
 
-function periodLabel(p: ReportPeriod, month?: string): string {
-  switch (p) {
-    case 'month':
-      return month ? `Mês: ${month}` : 'Mês atual';
-    case 'last3':
-      return 'Últimos 3 meses';
-    case 'last6':
-      return 'Últimos 6 meses';
-    case 'year':
-      return 'Últimos 12 meses';
-    case 'all':
-      return 'Histórico completo';
-  }
-}
-
-function periodFilters(filters: ReportFilters): TransactionFilters {
-  const base: TransactionFilters = {};
-  if (filters.category) base.category = filters.category;
-
-  switch (filters.period) {
-    case 'month':
-      if (filters.month) base.month = filters.month;
-      else base.month = getCurrentMonthKey();
-      break;
-    case 'last3':
-      base.dateFrom = `${offsetMonthKey(2)}-01`;
-      break;
-    case 'last6':
-      base.dateFrom = `${offsetMonthKey(5)}-01`;
-      break;
-    case 'year':
-      base.dateFrom = `${offsetMonthKey(11)}-01`;
-      break;
-    case 'all':
-      break;
-  }
-  return base;
-}
-
 /**
  * Aggregates the data the Report page needs given a filter selection.
  *
@@ -74,7 +38,7 @@ export function useReportData(filters: ReportFilters) {
   const tx = useTransactions();
 
   return useMemo(() => {
-    const base = periodFilters(filters);
+    const base = periodToFilters(filters);
 
     const income = tx.getTotalIncome(base);
     const expenses = tx.getTotalExpenses(base);
