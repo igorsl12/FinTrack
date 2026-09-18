@@ -1,4 +1,6 @@
+import { useMemo, useState } from 'react';
 import { Layout } from '@/shared/components/Layout';
+import { PeriodFilter } from '@/shared/components/PeriodFilter';
 import { BalanceHero } from '@/features/dashboard/components/BalanceHero';
 import { SpendingHealth } from '@/features/dashboard/components/SpendingHealth';
 import { FlowChart } from '@/features/dashboard/components/FlowChart';
@@ -10,20 +12,44 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { BudgetProgressCard } from '@/features/budget/components/BudgetProgressCard';
 import { useBudgetProgress } from '@/features/budget/hooks/useBudgetProgress';
 import { InstallPrompt } from '@/shared/components/InstallPrompt';
+import { useTransactions } from '@/features/transactions/hooks/useTransactions';
+import { getCurrentMonthKey, getMonthLabel } from '@/shared/utils/date';
 
 export function DashboardPage() {
-  const m = useDashboardMetrics();
   const { currentUser } = useAuth();
-  const firstName = currentUser?.name.split(' ')[0] ?? '';
+  const { availableMonths } = useTransactions();
+
+  // The dashboard is a month-at-a-glance view: only the month is selectable.
+  // Multi-month ranges and category drill-down live on the Report page.
+  const [month, setMonth] = useState<string>(getCurrentMonthKey());
+
+  const selection = useMemo(
+    () => ({ period: 'month' as const, month }),
+    [month],
+  );
+
+  const m = useDashboardMetrics(selection);
   const budgetProgress = useBudgetProgress();
+  const firstName = currentUser?.name.split(' ')[0] ?? '';
 
   return (
-    <Layout subtitle={m.monthLabel} title={`Olá, ${firstName} `}>
+    <Layout subtitle={m.periodLabel} title={`Olá, ${firstName} `}>
       <div className="space-y-4">
         <InstallPrompt />
 
+        <PeriodFilter
+          period="month"
+          month={month}
+          availableMonths={availableMonths}
+          resultLabel={getMonthLabel(month)}
+          showPeriodOptions={false}
+          showCategoryFilter={false}
+          monthPicker="chips"
+          onMonthChange={setMonth}
+        />
+
         <BalanceHero
-          monthLabel={m.monthLabel}
+          monthLabel={m.periodLabel}
           balance={m.balance}
           income={m.totalIncome}
           expenses={m.totalExpenses}
@@ -36,7 +62,6 @@ export function DashboardPage() {
           <>
             <SpendingHealth rate={m.spendingRate} status={m.health} />
             <BudgetProgressCard items={budgetProgress} />
-
 
             <FlowChart data={m.monthlyFlow} />
             <CategoryBreakdown

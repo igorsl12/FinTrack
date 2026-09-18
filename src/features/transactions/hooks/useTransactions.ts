@@ -86,12 +86,17 @@ export function useTransactions() {
     }, {});
   };
 
-  const getMonthlyFlow = (months: number): MonthlyData[] => {
+  const getMonthlyFlow = (
+    months: number,
+    category?: Category,
+  ): MonthlyData[] => {
     const result: MonthlyData[] = [];
     for (let i = months - 1; i >= 0; i--) {
       const monthKey = offsetMonthKey(i);
       const monthTx = transactions.filter(
-        (t) => getMonthKey(t.date) === monthKey,
+        (t) =>
+          getMonthKey(t.date) === monthKey &&
+          (!category || t.category === category),
       );
       const income = sumByType(monthTx, 'income');
       const expense = sumByType(monthTx, 'expense');
