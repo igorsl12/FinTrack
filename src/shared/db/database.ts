@@ -29,20 +29,6 @@ export interface CategoryRuleRecord {
   hitCount: number;
 }
 
-export interface PlanRecord {
-  id: string;
-  userId: string;
-  name: string;
-  initialAmount: number;
-  monthlyContribution: number;
-  /** Monthly interest rate as a decimal (0.01 = 1% per month). */
-  monthlyRate: number;
-  /** Total period in months. */
-  months: number;
-  targetAmount: number | null;
-  createdAt: string;
-}
-
 export interface RecurringRecord {
   id: string;
   userId: string;
@@ -91,7 +77,6 @@ export class FinTrackDB extends Dexie {
   users!: Table<UserRecord, string>;
   transactions!: Table<TransactionRecord, string>;
   categoryRules!: Table<CategoryRuleRecord, string>;
-  plans!: Table<PlanRecord, string>;
   recurrings!: Table<RecurringRecord, string>;
   budgets!: Table<BudgetRecord, string>;
   customCategories!: Table<CustomCategoryRecord, string>;
@@ -129,6 +114,10 @@ export class FinTrackDB extends Dexie {
       recurrings: 'id, userId, active, [userId+active]',
       budgets: 'id, userId, category, [userId+category]',
       customCategories: 'id, userId, type, [userId+type], [userId+name]',
+    });
+    // v6 drops the "plans" (simulador/projeção) feature and its table.
+    this.version(6).stores({
+      plans: null,
     });
   }
 }

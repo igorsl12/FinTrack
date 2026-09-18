@@ -1,11 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import {
-  CalendarDays,
   LayoutDashboard,
   ListChecks,
   PieChart,
   PlusCircle,
-  TrendingUp,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -20,8 +18,6 @@ const items: NavItem[] = [
   { to: '/', label: 'Início', icon: LayoutDashboard, end: true },
   { to: '/add', label: 'Lançar', icon: PlusCircle },
   { to: '/history', label: 'Extrato', icon: ListChecks },
-  { to: '/forecast', label: 'Previsão', icon: CalendarDays },
-  { to: '/plans', label: 'Planos', icon: TrendingUp },
   { to: '/report', label: 'Relatório', icon: PieChart },
 ];
 
@@ -35,9 +31,9 @@ export function BottomNav() {
       aria-label="Navegação principal"
       className="fixed bottom-0 inset-x-0 mx-auto max-w-[480px] z-30 bg-white border-t border-slate-200 dark:bg-slate-900 dark:border-slate-800 shadow-app safe-area"
     >
-      <ul className="grid grid-cols-6">
+      <ul className="flex">
         {items.map(({ to, label, icon: Icon, end }) => (
-          <li key={to}>
+          <li key={to} className="flex-1 min-w-0">
             <NavLink
               to={to}
               end={end}

@@ -21,7 +21,6 @@ import {
 import { useTransactionStore } from '@/features/transactions/store/transactionStore';
 import { useRecurringStore } from '@/features/recurring/store/recurringStore';
 import { useBudgetStore } from '@/features/budget/store/budgetStore';
-import { usePlansStore } from '@/features/plans/store/plansStore';
 import { useCustomCategoryStore } from '@/features/categories/store/customCategoryStore';
 
 export function SettingsPage() {
@@ -37,7 +36,6 @@ export function SettingsPage() {
   const reloadTx = useTransactionStore((s) => s.loadForUser);
   const reloadRec = useRecurringStore((s) => s.loadForUser);
   const reloadBudget = useBudgetStore((s) => s.loadForUser);
-  const reloadPlans = usePlansStore((s) => s.loadForUser);
   const reloadCategories = useCustomCategoryStore((s) => s.loadForUser);
 
   async function handleExport() {
@@ -76,13 +74,12 @@ export function SettingsPage() {
           reloadTx(result.userId),
           reloadRec(result.userId),
           reloadBudget(result.userId),
-          reloadPlans(result.userId),
           reloadCategories(result.userId),
         ]);
       }
       setMessage({
         kind: 'ok',
-        text: `Importado: ${result.counts.transactions} transações, ${result.counts.plans} planos, ${result.counts.budgets} orçamentos, ${result.counts.recurrings} recorrências, ${result.counts.categoryRules} regras, ${result.counts.customCategories} categorias.`,
+        text: `Importado: ${result.counts.transactions} transações, ${result.counts.budgets} orçamentos, ${result.counts.recurrings} recorrências, ${result.counts.categoryRules} regras, ${result.counts.customCategories} categorias.`,
       });
     } catch (err) {
       setMessage({
@@ -131,7 +128,7 @@ export function SettingsPage() {
             </h3>
           </div>
           <p className="text-xs text-slate-500 mb-3">
-            Gera um arquivo JSON com sua conta, transações, planos, orçamentos e
+            Gera um arquivo JSON com sua conta, transações, orçamentos e
             recorrências. Inclui sua senha já com hash — pode ser importado em
             outro dispositivo sem perder o login.
           </p>
