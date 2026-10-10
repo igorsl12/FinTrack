@@ -10,7 +10,7 @@ interface RecurringState {
   clear(): void;
   create(
     input: Omit<RecurringRecord, 'id' | 'userId' | 'createdAt'>,
-  ): Promise<void>;
+  ): Promise<RecurringRecord | null>;
   toggleActive(id: string, active: boolean): Promise<void>;
   remove(id: string): Promise<void>;
 }
@@ -32,9 +32,10 @@ export const useRecurringStore = create<RecurringState>()((set, get) => ({
 
   async create(input) {
     const userId = get().userId;
-    if (!userId) return;
+    if (!userId) return null;
     const record = await recurringRepository.create(userId, input);
     set({ recurrings: [record, ...get().recurrings] });
+    return record;
   },
 
   async toggleActive(id, active) {

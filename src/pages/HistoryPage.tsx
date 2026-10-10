@@ -5,6 +5,7 @@ import { TransactionList } from '@/features/transactions/components/TransactionL
 import { EditTransactionDialog } from '@/features/transactions/components/EditTransactionDialog';
 import { Button } from '@/shared/components/Button';
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
+import { useRecurringStore } from '@/features/recurring/store/recurringStore';
 import type {
   Transaction,
   TransactionType,
@@ -26,7 +27,10 @@ export function HistoryPage() {
   const [tag, setTag] = useState<string>('');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<Transaction | null>(null);
+  const [alsoCancelPlan, setAlsoCancelPlan] = useState(false);
+  const recurrings = useRecurringStore((s) => s.recurrings);
+  const removeRecurring = useRecurringStore((s) => s.remove);
   const [editing, setEditing] = useState<Transaction | null>(null);
 
   useEffect(() => {
@@ -45,11 +49,22 @@ export function HistoryPage() {
     [getFilteredTransactions, type, month, tag, search],
   );
 
+  // Only offer to cancel the plan while it still exists — a transaction can
+  // outlive the recurrence that generated it.
+  const confirmingPlan = confirming?.recurringPlanId
+    ? recurrings.find((r) => r.id === confirming.recurringPlanId) ?? null
+    : null;
+
+  function askDelete(id: string) {
+    setConfirming(transactions.find((t) => t.id === id) ?? null);
+    setAlsoCancelPlan(false);
+  }
+
   function confirmDelete() {
-    if (confirmId) {
-      void deleteTransaction(confirmId);
-      setConfirmId(null);
-    }
+    if (!confirming) return;
+    void deleteTransaction(confirming.id);
+    if (confirmingPlan && alsoCancelPlan) void removeRecurring(confirmingPlan.id);
+    setConfirming(null);
   }
 
   return (
@@ -135,26 +150,43 @@ export function HistoryPage() {
 
         <TransactionList
           transactions={transactions}
-          onDelete={(id) => setConfirmId(id)}
+          onDelete={askDelete}
           onEdit={(t) => setEditing(t)}
         />
       </div>
 
-      {confirmId && (
+      {confirming && (
         <div
           role="dialog"
           aria-modal="true"
           className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-slate-900/40 px-4 pb-24 sm:pb-4"
         >
-          <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl">
-            <h2 className="text-base font-semibold text-slate-900">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xl">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               Excluir transação?
             </h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Essa ação não pode ser desfeita.
             </p>
+            {confirmingPlan && (
+              <label className="mt-3 flex items-start gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 p-3 text-sm text-slate-700 dark:text-slate-200 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={alsoCancelPlan}
+                  onChange={(e) => setAlsoCancelPlan(e.target.checked)}
+                />
+                <span>
+                  Cancelar também a recorrência
+                  <span className="block text-xs text-slate-500 dark:text-slate-400">
+                    Para de lançar "{confirmingPlan.description}" nos próximos
+                    meses. Lançamentos anteriores continuam no extrato.
+                  </span>
+                </span>
+              </label>
+            )}
             <div className="mt-4 flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setConfirmId(null)}>
+              <Button variant="ghost" onClick={() => setConfirming(null)}>
                 Cancelar
               </Button>
               <Button variant="danger" onClick={confirmDelete}>
