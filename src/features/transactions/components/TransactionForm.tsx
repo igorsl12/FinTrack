@@ -8,10 +8,9 @@ import {
 } from '../types';
 import { useTransactions } from '../hooks/useTransactions';
 import { useCategories } from '@/features/categories/hooks/useCategories';
-import { getTodayKey } from '@/shared/utils/date';
+import { getCurrentMonthKey, getTodayKey } from '@/shared/utils/date';
 import { parseCurrency } from '@/shared/utils/currency';
-import { recurringRepository } from '@/shared/db/recurringRepository';
-import { useAuthStore } from '@/features/auth/store/authStore';
+import { useRecurringStore } from '@/features/recurring/store/recurringStore';
 
 interface TransactionFormProps {
   /** When provided, the form edits this transaction instead of creating one. */
@@ -35,6 +34,7 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const isEditing = !!editing;
   const { addTransaction, updateTransaction } = useTransactions();
+  const createRecurring = useRecurringStore((s) => s.create);
   const categories = useCategories();
 
   const [type, setType] = useState<TransactionType>(editing?.type ?? 'expense');
@@ -117,27 +117,26 @@ export function TransactionForm({
     if (isEditing && editing) {
       await updateTransaction(editing.id, payload);
     } else {
-      await addTransaction(payload);
-
-      if (makeRecurring && allowRecurring) {
-        const userId = useAuthStore.getState().currentUser?.id;
-        if (userId) {
-          const today = new Date();
-          const generatedMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-          await recurringRepository.create(userId, {
-            description: payload.description,
-            amount: payload.amount,
-            category: payload.category,
-            type: payload.type,
-            dayOfMonth: Math.min(28, Math.max(1, recurringDay)),
-            startDate: date,
-            endDate: null,
-            lastGeneratedMonth: generatedMonth,
-            tags: tags,
-            active: true,
-          });
-        }
-      }
+      // Goes through the store (not the repository) so the Recorrências
+      // screen sees the new plan — and can cancel it — without a reload.
+      const plan =
+        makeRecurring && allowRecurring
+          ? await createRecurring({
+              description: payload.description,
+              amount: payload.amount,
+              category: payload.category,
+              type: payload.type,
+              dayOfMonth: Math.min(28, Math.max(1, recurringDay)),
+              startDate: date,
+              endDate: null,
+              lastGeneratedMonth: getCurrentMonthKey(),
+              tags: tags,
+              active: true,
+            })
+          : null;
+      await addTransaction(
+        plan ? { ...payload, recurringPlanId: plan.id } : payload,
+      );
     }
 
     setShowSuccess(true);

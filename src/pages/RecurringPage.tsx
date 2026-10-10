@@ -21,7 +21,6 @@ export function RecurringPage() {
   const navigate = useNavigate();
   const userId = useAuthStore((s) => s.currentUser?.id ?? null);
   const recurrings = useRecurringStore((s) => s.recurrings);
-  const storeUser = useRecurringStore((s) => s.userId);
   const loadForUser = useRecurringStore((s) => s.loadForUser);
   const clear = useRecurringStore((s) => s.clear);
   const toggleActive = useRecurringStore((s) => s.toggleActive);
@@ -29,10 +28,12 @@ export function RecurringPage() {
 
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
+  // Always reload on entry: plans can be created or removed from other
+  // screens, and the list here is the only place to cancel them.
   useEffect(() => {
     if (!userId) clear();
-    else if (storeUser !== userId) void loadForUser(userId);
-  }, [userId, storeUser, loadForUser, clear]);
+    else void loadForUser(userId);
+  }, [userId, loadForUser, clear]);
 
   return (
     <Layout subtitle="Automação" title="Recorrências">
@@ -88,11 +89,11 @@ export function RecurringPage() {
           aria-modal="true"
           className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-slate-900/40 px-4 pb-24 sm:pb-4"
         >
-          <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl">
-            <h2 className="text-base font-semibold text-slate-900">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xl">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               Excluir recorrência?
             </h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               As transações já geradas serão mantidas. Apenas paramos de
               criar novas.
             </p>
